@@ -1,0 +1,9 @@
+.env
+.streamlit/secrets.toml
+google_credentials.json
+*.pyc
+__pycache__/
+reports_store.json
+uploads/
+*.db
+.DS_Store

@@ -1,0 +1,16 @@
+body{
+background:#f5f7fa;
+font-family:Inter, sans-serif;
+}
+
+.stButton button{
+border-radius:12px;
+padding:10px 20px;
+font-weight:600;
+transition:0.2s;
+}
+
+.stButton button:hover{
+transform:translateY(-2px);
+box-shadow:0 6px 16px rgba(0,0,0,0.15);
+}
