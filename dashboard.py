@@ -24,7 +24,7 @@ from report_handler import (
     filter_reports,
     get_my_reports,
     compute_stats,
-    is_late_report,   # ← always accepts a dict; never call is_late(dict) directly
+    is_late_report,
     get_status,
 )
 from auth import can_approve_reject, can_view_all_reports, can_mark_late
@@ -94,7 +94,6 @@ def render_filter_bar(reports: list, prefix: str = "") -> dict:
 # ── DOCX fetch (Supabase or disk) ─────────────────────────────────────────────
 
 def _get_docx_bytes(r: dict) -> bytes | None:
-    # Prefer Supabase-stored file
     db_id = r.get("id") or r.get("docx_file_id")
     if db_id:
         try:
@@ -105,7 +104,6 @@ def _get_docx_bytes(r: dict) -> bytes | None:
         except Exception as exc:
             log.warning("Supabase DOCX fetch failed: %s", exc)
 
-    # Disk fallback
     path = r.get("file_path", "")
     if path and os.path.exists(path):
         with open(path, "rb") as fh:
@@ -297,7 +295,9 @@ def page_dashboard_secretariat(send_review_email_fn) -> None:
     </div>
     """, unsafe_allow_html=True)
 
-    all_reports = load_reports()
+    _role = st.session_state.get("role", "secretariat")
+    _email = st.session_state.get("user_email", "")
+    all_reports = load_reports(email=_email, role=_role)
     render_stats_bar(compute_stats(all_reports), show_late=True)
 
     if not all_reports:
@@ -333,7 +333,9 @@ def page_dashboard_editor(send_review_email_fn) -> None:
     </div>
     """, unsafe_allow_html=True)
 
-    all_reports = load_reports()
+    _role = st.session_state.get("role", "editor")
+    _email = st.session_state.get("user_email", "")
+    all_reports = load_reports(email=_email, role=_role)
     render_stats_bar(compute_stats(all_reports), show_late=False)
 
     if not all_reports:
@@ -370,7 +372,7 @@ def page_dashboard_director() -> None:
     </div>
     """, unsafe_allow_html=True)
 
-    all_reports = load_reports()
+    all_reports = load_reports(email=email, role="director")
     my_reports  = get_my_reports(all_reports, email)
 
     if not my_reports:
@@ -439,7 +441,6 @@ def page_admin() -> None:
     director_emails    = set(roles_data.get("director_emails", []))
     editor_emails      = set(roles_data.get("editor_emails", []))
 
-    # Build unified whitelist from roles
     whitelist = sorted(secretariat_emails | director_emails | editor_emails |
                        set(roles_data.get("admin_emails", [])))
 
@@ -456,7 +457,6 @@ def page_admin() -> None:
 
     tab1, tab2 = st.tabs(["➕ Add Member", "📋 Current Members"])
 
-    # ── Add member ────────────────────────────────────────────────────────
     with tab1:
         st.markdown("""
         <div style='background:rgba(0,201,177,0.08);border:1px solid rgba(0,201,177,0.25);
@@ -516,7 +516,6 @@ def page_admin() -> None:
                     time.sleep(1)
                     st.rerun()
 
-    # ── View / manage ─────────────────────────────────────────────────────
     with tab2:
         if not whitelist:
             st.info("No members added yet.")
@@ -614,7 +613,6 @@ def page_manage_members() -> None:
                     return True
             except Exception as exc:
                 log.warning("Supabase add_member_to_db failed: %s", exc)
-        # JSON fallback
         members = load_members_list()
         members.append({"name": name.strip(), "email": email.strip().lower(),
                          "role": "Member", "added_date": str(datetime.now())})
@@ -710,7 +708,6 @@ def page_manage_members() -> None:
 
             st.markdown("---")
             st.subheader("Remove Member", divider="gray")
-            # Secretariat can only remove plain Members; admin can remove all
             if current_role == "secretariat":
                 removable = [m for m in members_list if m.get("role", "Member") == "Member"]
             else:

@@ -948,7 +948,7 @@ def page_profile():
         f"<div class='rcba-profile-avatar-lg-init'>{init}</div>"
     )
 
-    all_reports = load_reports()
+    all_reports = load_reports(email=email, role=role)
     my_reports  = [r for r in all_reports if r.get("submitted_by_email", "").lower() == email.lower()]
     total       = len(my_reports)
     late_count  = sum(1 for r in my_reports if is_late_report(r))
@@ -1237,8 +1237,11 @@ def page_new_report():
                         "ambassadorial_attendance_count": bod.get("ambassadorial_attendance_count", 0),
                         "ambassadorial_club_names":      bod.get("ambassadorial_club_names", ""),
                     }
-                    save_report(record, docx_binary=docx_bytes)
-                    st.success("Document ready to download. Report saved to dashboard.")
+                    save_result = save_report(record, docx_binary=docx_bytes)
+                    if save_result.get("success"):
+                        st.success("Document ready to download. Report saved to dashboard.")
+                    else:
+                        st.warning(f"Report saved locally (Supabase error: {save_result.get('error', 'unknown')}). Contact admin if this persists.")
                 except Exception as exc:
                     st.error(f"Document generation failed: {exc}")
 
