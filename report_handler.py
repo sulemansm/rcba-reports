@@ -29,7 +29,6 @@ except Exception as exc:
 # ── JSON fallback path ─────────────────────────────────────────────────────────
 _HERE = os.path.dirname(os.path.abspath(__file__))
 REPORTS_FILE = os.path.join(_HERE, "reports_store.json")
-# _HERE always exists, so makedirs on _HERE is safe
 os.makedirs(_HERE, exist_ok=True)
 
 
@@ -136,18 +135,21 @@ def update_report_by_id(report_id: str, fields: dict) -> bool:
 def update_report_status(report_id_or_int, status: str, approved_by: str = "", comments: str = "") -> bool:
     if USE_SUPABASE:
         try:
+            numeric_id = int(report_id_or_int)
             return update_report_status_db(
-                int(report_id_or_int), status,
+                numeric_id, status,
                 approved_by=approved_by, comments=comments
             )
+        except (ValueError, TypeError):
+            log.warning("[report_handler] update_report_status: '%s' is not a numeric Supabase ID — falling back to JSON", report_id_or_int)
         except Exception as exc:
             log.error("[report_handler] Supabase status update error: %s", exc)
 
     return update_report_by_id(str(report_id_or_int), {
-        "status":           status,
-        "approved_by":      approved_by,
+        "status":            status,
+        "approved_by":       approved_by,
         "approval_comments": comments,
-        "approved_at":      str(datetime.now()) if approved_by else "",
+        "approved_at":       str(datetime.now()) if approved_by else "",
     })
 
 
@@ -178,7 +180,6 @@ def is_late_report(report: dict) -> bool:
     """Convenience wrapper that accepts a full report dict."""
     ev  = report.get("event_date") or report.get("event_start_date", "")
     sub = report.get("submitted_at") or report.get("submission_timestamp", "")
-    # Respect an explicit override stored on the record
     if "is_late" in report and isinstance(report["is_late"], bool):
         return report["is_late"]
     return is_late(ev, sub)
