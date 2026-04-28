@@ -94,11 +94,12 @@ def render_filter_bar(reports: list, prefix: str = "") -> dict:
 # ── DOCX fetch (Supabase or disk) ─────────────────────────────────────────────
 
 def _get_docx_bytes(r: dict) -> bytes | None:
-    db_id = r.get("id") or r.get("docx_file_id")
-    if db_id:
+    # get_docx_file queries docx_files by report_id (the report's integer PK)
+    report_db_id = r.get("id")
+    if report_db_id:
         try:
             from supabase_handler import get_docx_file
-            data = get_docx_file(db_id)
+            data = get_docx_file(report_db_id)
             if data:
                 return data
         except Exception as exc:

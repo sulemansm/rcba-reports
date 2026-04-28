@@ -1001,43 +1001,43 @@ def page_new_report():
     render_step("01", "Event Details")
     st.markdown("<div class='rcba-card'>", unsafe_allow_html=True)
 
-    with st.form("event_form"):
-        c1, c2 = st.columns(2)
-        with c1:
-            title       = st.text_input("Event Title *",  placeholder="e.g. Shukriya Award Night 2025")
-            venue       = st.text_input("Venue *",         placeholder="e.g. Sanskriti Arts, Andheri")
-        with c2:
-            chief_guest = st.text_input("Chief Guest",     placeholder="Name or N/A")
+    # Basic event fields (outside form so word counters update live on each keystroke)
+    c1, c2 = st.columns(2)
+    with c1:
+        title       = st.text_input("Event Title *",  placeholder="e.g. Shukriya Award Night 2025", key="f_title")
+        venue       = st.text_input("Venue *",         placeholder="e.g. Sanskriti Arts, Andheri", key="f_venue")
+    with c2:
+        chief_guest = st.text_input("Chief Guest",     placeholder="Name or N/A", key="f_guest")
 
-        st.markdown("<div class='rcba-section-label' style='margin-top:0.8rem;'>Event Schedule</div>", unsafe_allow_html=True)
-        dc1, dc2 = st.columns(2)
-        with dc1:
-            start_date = st.date_input("Start Date *",  value=date.today())
-            start_time = st.time_input("Start Time *",  value=datetime.strptime("18:00", "%H:%M").time())
-        with dc2:
-            end_date   = st.date_input("End Date *",    value=date.today())
-            end_time   = st.time_input("End Time *",    value=datetime.strptime("20:00", "%H:%M").time())
+    st.markdown("<div class='rcba-section-label' style='margin-top:0.8rem;'>Event Schedule</div>", unsafe_allow_html=True)
+    dc1, dc2 = st.columns(2)
+    with dc1:
+        start_date = st.date_input("Start Date *",  value=date.today(), key="f_sdate")
+        start_time = st.time_input("Start Time *",  value=datetime.strptime("18:00", "%H:%M").time(), key="f_stime")
+    with dc2:
+        end_date   = st.date_input("End Date *",    value=date.today(), key="f_edate")
+        end_time   = st.time_input("End Time *",    value=datetime.strptime("20:00", "%H:%M").time(), key="f_etime")
 
-        st.markdown("<div class='rcba-section-label' style='margin-top:1rem;'>Description</div>", unsafe_allow_html=True)
-        description = st.text_area(f"Event Description / Aim * (max {WORD_LIMITS['description']} words)", placeholder="Purpose and motivation behind this event?", height=85, key="f_desc")
-        st.markdown(word_counter_html(description, WORD_LIMITS["description"]), unsafe_allow_html=True)
+    st.markdown("<div class='rcba-section-label' style='margin-top:1rem;'>Description</div>", unsafe_allow_html=True)
+    description = st.text_area(f"Event Description / Aim * (max {WORD_LIMITS['description']} words)", placeholder="Purpose and motivation behind this event?", height=85, key="f_desc")
+    st.markdown(word_counter_html(description, WORD_LIMITS["description"]), unsafe_allow_html=True)
 
-        st.markdown("<div class='rcba-section-label' style='margin-top:1rem;'>Execution Details</div>", unsafe_allow_html=True)
+    st.markdown("<div class='rcba-section-label' style='margin-top:1rem;'>Execution Details</div>", unsafe_allow_html=True)
 
-        pre_event = st.text_area(f"Pre-Event Work * (max {WORD_LIMITS['pre_event']} words)", placeholder="Planning, logistics, venue booking, coordination...", height=80, key="f_pre")
-        st.markdown(word_counter_html(pre_event, WORD_LIMITS["pre_event"]), unsafe_allow_html=True)
+    pre_event = st.text_area(f"Pre-Event Work * (max {WORD_LIMITS['pre_event']} words)", placeholder="Planning, logistics, venue booking, coordination...", height=80, key="f_pre")
+    st.markdown(word_counter_html(pre_event, WORD_LIMITS["pre_event"]), unsafe_allow_html=True)
 
-        on_day = st.text_area(f"On-Day Work * (max {WORD_LIMITS['on_day']} words)", placeholder="Schedule, segments, hosting, key moments...", height=80, key="f_on")
-        st.markdown(word_counter_html(on_day, WORD_LIMITS["on_day"]), unsafe_allow_html=True)
+    on_day = st.text_area(f"On-Day Work * (max {WORD_LIMITS['on_day']} words)", placeholder="Schedule, segments, hosting, key moments...", height=80, key="f_on")
+    st.markdown(word_counter_html(on_day, WORD_LIMITS["on_day"]), unsafe_allow_html=True)
 
-        post_event = st.text_area(f"Post-Event Work (max {WORD_LIMITS['post_event']} words)", placeholder="Follow-up tasks, thank-you messages, social media... (optional)", height=70, key="f_post")
-        st.markdown(word_counter_html(post_event, WORD_LIMITS["post_event"]), unsafe_allow_html=True)
+    post_event = st.text_area(f"Post-Event Work (max {WORD_LIMITS['post_event']} words)", placeholder="Follow-up tasks, thank-you messages, social media... (optional)", height=70, key="f_post")
+    st.markdown(word_counter_html(post_event, WORD_LIMITS["post_event"]), unsafe_allow_html=True)
 
-        st.markdown("<div class='rcba-section-label' style='margin-top:1rem;'>Outcome</div>", unsafe_allow_html=True)
-        outcome = st.text_area(f"Outcome / Impact * (max {WORD_LIMITS['outcome']} words)", placeholder="Results, achievements, effect on members and community...", height=80, key="f_out")
-        st.markdown(word_counter_html(outcome, WORD_LIMITS["outcome"]), unsafe_allow_html=True)
+    st.markdown("<div class='rcba-section-label' style='margin-top:1rem;'>Outcome</div>", unsafe_allow_html=True)
+    outcome = st.text_area(f"Outcome / Impact * (max {WORD_LIMITS['outcome']} words)", placeholder="Results, achievements, effect on members and community...", height=80, key="f_out")
+    st.markdown(word_counter_html(outcome, WORD_LIMITS["outcome"]), unsafe_allow_html=True)
 
-        gen_btn = st.form_submit_button("Generate Report", use_container_width=True, type="primary")
+    gen_btn = st.button("Generate Report", use_container_width=True, type="primary", key="btn_gen_report")
 
     st.markdown("</div>", unsafe_allow_html=True)
 
