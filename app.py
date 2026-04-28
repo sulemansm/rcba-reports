@@ -919,6 +919,22 @@ def build_docx(event: dict, report_text: str, bod: dict) -> bytes:
 # ═══════════════════════════════════════════════════════════════════════════════
 
 def page_dashboard():
+    # Show download button for the report that was just submitted
+    if st.session_state.get("_last_docx_bytes"):
+        last_title = st.session_state.get("_last_docx_title", "report")
+        st.success("Report submitted successfully!")
+        st.download_button(
+            label="Download your submitted report (.docx)",
+            data=st.session_state._last_docx_bytes,
+            file_name=f"RCBA_Report_{last_title.replace(' ', '_')}.docx",
+            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            use_container_width=True,
+            key="dl_last_submitted",
+        )
+        # Clear after rendering so it does not persist across future dashboard visits
+        st.session_state._last_docx_bytes = None
+        st.session_state._last_docx_title = None
+
     role = st.session_state.get("role", "director")
     if role in ("secretariat", "admin"):
         page_dashboard_secretariat(send_review_email)
@@ -1239,7 +1255,16 @@ def page_new_report():
                     }
                     save_result = save_report(record, docx_binary=docx_bytes)
                     if save_result.get("success"):
-                        st.success("Document ready to download. Report saved to dashboard.")
+                        # Stash the docx for download, then clear form state and go to dashboard
+                        st.session_state._last_docx_bytes = docx_bytes
+                        st.session_state._last_docx_title = ev_title
+                        st.session_state.report_text = ""
+                        st.session_state.event       = {}
+                        st.session_state.bod         = {}
+                        st.session_state.docx_bytes  = None
+                        st.session_state.page        = "dashboard"
+                        st.success("Report saved! Redirecting to dashboard…")
+                        st.rerun()
                     else:
                         st.warning(f"Report saved locally (Supabase error: {save_result.get('error', 'unknown')}). Contact admin if this persists.")
                 except Exception as exc:
