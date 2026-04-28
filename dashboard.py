@@ -374,7 +374,10 @@ def page_dashboard_director() -> None:
     """, unsafe_allow_html=True)
 
     all_reports = load_reports(email=email, role="director")
-    my_reports  = get_my_reports(all_reports, email)
+    # load_reports already filters by email for the director role;
+    # calling get_my_reports again would double-filter and could drop reports
+    # on the JSON fallback if email case differs. Use all_reports directly.
+    my_reports = all_reports
 
     if not my_reports:
         st.info('No reports yet. Submit your first event report via "New Report" above.')

@@ -64,6 +64,9 @@ def save_report(record: dict, docx_binary: Optional[bytes] = None) -> Dict:
     record.setdefault("report_id", str(uuid.uuid4())[:8].upper())
     record.setdefault("status", "submitted")
     record.setdefault("submission_timestamp", str(datetime.now()))
+    # Normalise email so JSON-path filtering always matches
+    if "submitted_by_email" in record:
+        record["submitted_by_email"] = record["submitted_by_email"].strip().lower()
 
     if USE_SUPABASE:
         try:
